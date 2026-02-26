@@ -1,0 +1,35 @@
+{
+  "name": "shopify-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Shopify Admin API — product, order, customer, inventory, and fulfillment management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "shopify-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "shopify",
+    "mcp",
+    "model-context-protocol",
+    "admin-api",
+    "ecommerce"
+  ],
+  "author": "Matthew Karsten <MatthewKarstenConnects@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
