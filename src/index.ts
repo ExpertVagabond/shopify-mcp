@@ -55,6 +55,32 @@ import {
   createFulfillment,
 } from "./tools/fulfillments.js";
 
+import {
+  getCollection,
+  collectionProducts,
+  createSmartCollection,
+} from "./tools/collections.js";
+
+import {
+  listPriceRules,
+  getPriceRule,
+  createDiscountCode,
+  listDiscountCodes,
+} from "./tools/marketing.js";
+
+import {
+  listBlogs,
+  listPages,
+  getMetafields,
+  setMetafield,
+} from "./tools/content.js";
+
+import {
+  listWebhooks,
+  createWebhook,
+  deleteWebhook,
+} from "./tools/webhooks.js";
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }> }> {
@@ -320,6 +346,164 @@ server.tool(
     line_item_ids: z.array(z.string()).optional().describe("Specific line item IDs to fulfill (default: all)"),
   },
   wrapTool(createFulfillment),
+);
+
+// ── Enhanced Collection Tools ────────────────────────────────────────────────
+
+server.tool(
+  "get_collection",
+  "Get detailed collection info including product count, rules (for smart collections), and description",
+  {
+    collection_id: z.string().describe("Shopify collection ID"),
+  },
+  wrapTool(getCollection),
+);
+
+server.tool(
+  "collection_products",
+  "List all products in a specific collection with pricing and inventory details",
+  {
+    collection_id: z.string().describe("Shopify collection ID"),
+    limit: z.number().optional().describe("Max results (default 50, max 250)"),
+  },
+  wrapTool(collectionProducts),
+);
+
+server.tool(
+  "create_smart_collection",
+  "Create a smart (automated) collection with rule-based product matching",
+  {
+    title: z.string().describe("Collection title"),
+    rules: z.array(z.object({
+      column: z.string().describe("Rule column: title, type, vendor, variant_price, tag, variant_compare_at_price, variant_weight, variant_inventory, variant_title"),
+      relation: z.string().describe("Rule relation: equals, not_equals, greater_than, less_than, starts_with, ends_with, contains, not_contains"),
+      condition: z.string().describe("Rule condition value"),
+    })).describe("Array of rules for automatic product matching"),
+    disjunctive: z.boolean().optional().describe("If true, match ANY rule; if false, match ALL rules (default: false)"),
+    published: z.boolean().optional().describe("Publish collection immediately (default: true)"),
+    sort_order: z.string().optional().describe("Sort order: alpha-asc, alpha-desc, best-selling, created, created-desc, manual, price-asc, price-desc"),
+    body_html: z.string().optional().describe("Collection description (HTML)"),
+  },
+  wrapTool(createSmartCollection),
+);
+
+// ── Marketing / Discount Tools ──────────────────────────────────────────────
+
+server.tool(
+  "list_price_rules",
+  "List all price rules (discounts/promotions) with active status, discount type, and usage limits",
+  {
+    limit: z.number().optional().describe("Max results (default 50)"),
+  },
+  wrapTool(listPriceRules),
+);
+
+server.tool(
+  "get_price_rule",
+  "Get detailed price rule info including discount codes, entitlements, prerequisites, and usage stats",
+  {
+    price_rule_id: z.string().describe("Shopify price rule ID"),
+  },
+  wrapTool(getPriceRule),
+);
+
+server.tool(
+  "create_discount_code",
+  "Create a new discount code for an existing price rule",
+  {
+    price_rule_id: z.string().describe("Price rule ID to attach the code to"),
+    code: z.string().describe("Discount code string (e.g. SUMMER20, WELCOME10)"),
+  },
+  wrapTool(createDiscountCode),
+);
+
+server.tool(
+  "list_discount_codes",
+  "List all discount codes for a specific price rule with usage counts",
+  {
+    price_rule_id: z.string().describe("Shopify price rule ID"),
+  },
+  wrapTool(listDiscountCodes),
+);
+
+// ── Content Tools ───────────────────────────────────────────────────────────
+
+server.tool(
+  "list_blogs",
+  "List all blogs with their articles. Shopify blogs contain articles/posts.",
+  {
+    limit: z.number().optional().describe("Max blogs to return (default 25)"),
+    include_articles: z.boolean().optional().describe("Include article listings per blog (default true)"),
+  },
+  wrapTool(listBlogs),
+);
+
+server.tool(
+  "list_pages",
+  "List store pages (About, Contact, FAQ, etc.) with preview content",
+  {
+    limit: z.number().optional().describe("Max results (default 50)"),
+    published_status: z.string().optional().describe("Filter: published, unpublished, any"),
+  },
+  wrapTool(listPages),
+);
+
+server.tool(
+  "get_metafields",
+  "Get metafields for a product, customer, order, collection, or other resource",
+  {
+    resource_type: z.string().describe("Resource type: products, customers, orders, collections, pages, blogs, articles, variants"),
+    resource_id: z.string().describe("Resource ID"),
+    namespace: z.string().optional().describe("Filter by metafield namespace"),
+  },
+  wrapTool(getMetafields),
+);
+
+server.tool(
+  "set_metafield",
+  "Set a metafield value on a product, customer, order, collection, or other resource",
+  {
+    resource_type: z.string().describe("Resource type: products, customers, orders, collections, pages, blogs, articles, variants"),
+    resource_id: z.string().describe("Resource ID"),
+    namespace: z.string().describe("Metafield namespace (e.g. custom, my_app)"),
+    key: z.string().describe("Metafield key"),
+    value: z.string().describe("Metafield value"),
+    type: z.string().describe("Metafield type: single_line_text_field, multi_line_text_field, number_integer, number_decimal, boolean, json, url, date, date_time, color, weight, dimension, rating"),
+  },
+  wrapTool(setMetafield),
+);
+
+// ── Webhook Tools ───────────────────────────────────────────────────────────
+
+server.tool(
+  "list_webhooks",
+  "List all registered webhooks with topics, addresses, and API versions",
+  {
+    topic: z.string().optional().describe("Filter by topic (e.g. orders/create, products/update)"),
+    limit: z.number().optional().describe("Max results (default 50)"),
+  },
+  wrapTool(listWebhooks),
+);
+
+server.tool(
+  "create_webhook",
+  "Register a new webhook to receive event notifications at a URL",
+  {
+    topic: z.string().describe("Webhook topic (e.g. orders/create, orders/updated, products/create, products/update, customers/create, app/uninstalled)"),
+    address: z.string().describe("HTTPS URL to receive webhook POST requests"),
+    format: z.string().optional().describe("Payload format: json (default) or xml"),
+    fields: z.array(z.string()).optional().describe("Specific fields to include in the webhook payload"),
+  },
+  wrapTool(createWebhook),
+);
+
+server.tool(
+  "delete_webhook",
+  "Remove a registered webhook",
+  {
+    webhook_id: z.string().describe("Shopify webhook ID to delete"),
+  },
+  wrapTool(deleteWebhook),
 );
 
 // ── Start ────────────────────────────────────────────────────────────────────
