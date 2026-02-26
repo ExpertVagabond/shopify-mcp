@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>shopify-mcp — AI-Powered Shopify Store Management</title>
+<meta name="description" content="Open-source MCP server that gives AI assistants full control over Shopify stores. 36 tools across products, orders, customers, inventory, marketing, and more.">
+<meta name="keywords" content="shopify, mcp, model context protocol, ecommerce, ai, store management, inventory, orders">
+<meta property="og:title" content="shopify-mcp — AI-Powered Shopify Store Management">
+<meta property="og:description" content="36 tools for AI-driven Shopify store management. Products, orders, customers, inventory, marketing, and webhooks.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shopify-mcp.pages.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="shopify-mcp — AI-Powered Shopify Store Management">
+<meta name="twitter:description" content="36 tools for AI-driven Shopify store management.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060608;--surface:#0c0c10;--surface2:#12121a;--border:#1a1a2e;
+  --accent:#5BB536;--accent-dim:#4a9a2d;--accent-glow:rgba(91,181,54,.06);
+  --blue:#4d7cff;--amber:#ffaa00;
+  --text:#c8c8d4;--text-muted:#666680;--text-bright:#eeeef4;
+  --font-display:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'SF Mono','Cascadia Code','Fira Code',Consolas,'Courier New',monospace;
+}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:var(--font-body);color:var(--text);background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent-dim)}
+
+/* === GRID OVERLAY === */
+.grid-overlay{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(91,181,54,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,181,54,.015) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.scanline{
+  position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
+}
+
+/* === LAYOUT === */
+.container{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+section{padding:100px 0}
+
+/* === NAV === */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 0;
+  background:rgba(6,6,8,.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+nav .container{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--accent);letter-spacing:-.5px}
+.nav-logo span{color:var(--text-muted)}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-family:var(--font-mono);font-size:13px;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase}
+.nav-links a:hover{color:var(--text-bright)}
+.nav-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border:1px solid var(--border);border-radius:6px;
+  font-family:var(--font-mono);font-size:12px;color:var(--text-muted);
+  transition:border-color .2s;
+}
+.nav-badge:hover{border-color:var(--accent)}
+.nav-badge svg{width:16px;height:16px}
+
+/* === HERO === */
+.hero{padding:180px 0 100px;position:relative}
+.hero::before{
+  content:'';position:absolute;top:80px;left:50%;transform:translateX(-50%);
+  width:600px;height:600px;
+  background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border:1px solid var(--border);border-radius:100px;
+  font-family:var(--font-mono);font-size:12px;color:var(--text-muted);
+  margin-bottom:32px;animation:fadeUp .6s ease both;
+}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(42px,7vw,80px);font-weight:700;
+  line-height:1;letter-spacing:-2px;
+  color:var(--text-bright);margin-bottom:24px;
+  animation:fadeUp .6s ease .1s both;
+}
+.hero h1 .accent{color:var(--accent)}
+.hero .subtitle{
+  font-size:18px;line-height:1.6;color:var(--text-muted);
+  max-width:560px;animation:fadeUp .6s ease .2s both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* === INSTALL BLOCK === */
+.install-block{
+  margin-top:48px;display:flex;flex-direction:column;gap:10px;
+  max-width:480px;animation:fadeUp .6s ease .3s both;
+}
+.install-row{
+  display:flex;align-items:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  overflow:hidden;transition:border-color .2s;
+}
+.install-row:hover{border-color:rgba(91,181,54,.3)}
+.install-lang{
+  padding:10px 14px;font-family:var(--font-mono);font-size:11px;
+  color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;
+  background:var(--surface2);border-right:1px solid var(--border);
+  min-width:44px;text-align:center;user-select:none;
+}
+.install-cmd{
+  flex:1;padding:10px 16px;
+  font-family:var(--font-mono);font-size:14px;color:var(--accent);
+  white-space:nowrap;overflow-x:auto;
+}
+.install-copy{
+  padding:10px 14px;cursor:pointer;background:none;border:none;
+  color:var(--text-muted);font-family:var(--font-mono);font-size:12px;
+  transition:color .2s;user-select:none;
+}
+.install-copy:hover{color:var(--accent)}
+.install-copy.copied{color:var(--accent)}
+
+/* === STATS BAR === */
+.stats{padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat{text-align:center;padding:20px;position:relative}
+.stat:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:var(--border)}
+.stat-num{font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--accent);line-height:1}
+.stat-label{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:8px}
+
+/* === TOOL REFERENCE TABLE === */
+#tools h2{font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--text-bright);letter-spacing:-1px;margin-bottom:12px}
+#tools .section-sub{font-size:15px;color:var(--text-muted);margin-bottom:56px;max-width:520px}
+.tool-category{margin-bottom:48px}
+.tool-category-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.tool-category-icon{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:18px;
+}
+.tool-category-name{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--text-bright)}
+.tool-category-count{font-family:var(--font-mono);font-size:12px;color:var(--accent);margin-left:auto}
+.tool-table{width:100%;border-collapse:collapse}
+.tool-table tr{border-bottom:1px solid var(--border);transition:background .15s}
+.tool-table tr:hover{background:var(--surface)}
+.tool-table td{padding:12px 16px;vertical-align:top}
+.tool-table td:first-child{
+  font-family:var(--font-mono);font-size:13px;color:var(--accent);
+  white-space:nowrap;width:260px;
+}
+.tool-table td:last-child{font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* === CONFIG === */
+#config{padding-bottom:120px}
+#config h2{font-family:var(--font-display);font-size:36px;font-weight:700;color:var(--text-bright);letter-spacing:-1px;margin-bottom:12px}
+#config .section-sub{font-size:15px;color:var(--text-muted);margin-bottom:40px;max-width:520px}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.config-block{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.config-header{
+  padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);
+  font-family:var(--font-mono);font-size:12px;color:var(--text-muted);
+  display:flex;align-items:center;gap:8px;
+}
+.config-header .file-icon{color:var(--amber);font-size:14px}
+pre.config-code{
+  padding:20px;margin:0;font-family:var(--font-mono);font-size:13px;line-height:1.7;
+  color:var(--text);overflow-x:auto;
+}
+pre.config-code .key{color:var(--blue)}
+pre.config-code .str{color:var(--accent)}
+pre.config-code .comment{color:var(--text-muted)}
+
+/* === FOOTER === */
+footer{padding:40px 0;border-top:1px solid var(--border)}
+footer .container{display:flex;align-items:center;justify-content:space-between}
+.footer-left{font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+.footer-links a:hover{color:var(--accent)}
+
+/* === RESPONSIVE === */
+@media(max-width:768px){
+  section{padding:72px 0}
+  .hero{padding:140px 0 72px}
+  .hero h1{letter-spacing:-1px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2)::after{display:none}
+  .config-grid{grid-template-columns:1fr}
+  .nav-links a:not(.nav-badge){display:none}
+  footer .container{flex-direction:column;gap:16px;text-align:center}
+  .tool-table td:first-child{width:auto;white-space:normal}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .tool-table td{padding:10px 8px}
+  .tool-table td:first-child{font-size:12px}
+}
+
+/* === SCROLL REVEAL === */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="#" class="nav-logo">shopify<span>-mcp</span></a>
+    <div class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#config">Config</a>
+      <a href="https://github.com/ExpertVagabond/shopify-mcp" target="_blank" class="nav-badge">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> Open Source &middot; MIT License</div>
+    <h1>Shopify stores<br>powered by <span class="accent">AI</span></h1>
+    <p class="subtitle">An MCP server that gives Claude, GPT, and any AI assistant full control over Shopify stores. 36 tools across products, orders, customers, inventory, marketing, and webhooks.</p>
+
+    <div class="install-block">
+      <div class="install-row">
+        <span class="install-lang">npm</span>
+        <code class="install-cmd">npx shopify-mcp</code>
+        <button class="install-copy" onclick="copyCmd(this,'npx shopify-mcp')">copy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats" style="padding:0">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-num">36</div><div class="stat-label">Tools</div></div>
+      <div class="stat"><div class="stat-num">10</div><div class="stat-label">Categories</div></div>
+      <div class="stat"><div class="stat-num">1</div><div class="stat-label">API</div></div>
+      <div class="stat"><div class="stat-num">&infin;</div><div class="stat-label">Store Tasks</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="container">
+    <h2 class="reveal">36 tools, 10 categories</h2>
+    <p class="section-sub reveal">Complete Shopify Admin API coverage. Products, orders, customers, inventory, fulfillments, collections, marketing, content, and webhooks.</p>
+
+    <!-- Products -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128722;</span>
+        <span class="tool-category-name">Products</span>
+        <span class="tool-category-count">5 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_products</td><td>List all products with filtering by status, vendor, and type</td></tr>
+        <tr><td>get_product</td><td>Get complete product details including variants, images, and metafields</td></tr>
+        <tr><td>search_products</td><td>Full-text search across product titles, descriptions, and tags</td></tr>
+        <tr><td>product_count</td><td>Get total product count with optional status and type filters</td></tr>
+        <tr><td>list_collections</td><td>List all manual and smart collections in the store</td></tr>
+      </table>
+    </div>
+
+    <!-- Orders -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128203;</span>
+        <span class="tool-category-name">Orders</span>
+        <span class="tool-category-count">5 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_orders</td><td>List orders with filters for status, financial status, and date range</td></tr>
+        <tr><td>get_order</td><td>Get complete order details with line items, shipping, and transactions</td></tr>
+        <tr><td>recent_orders</td><td>Get the most recent orders with summary information</td></tr>
+        <tr><td>unfulfilled_orders</td><td>List all orders awaiting fulfillment with priority indicators</td></tr>
+        <tr><td>order_count</td><td>Get total order count with optional status filters</td></tr>
+      </table>
+    </div>
+
+    <!-- Customers -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128101;</span>
+        <span class="tool-category-name">Customers</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>search_customers</td><td>Search customers by name, email, phone, or any custom field</td></tr>
+        <tr><td>get_customer</td><td>Get full customer profile with addresses, tags, and order stats</td></tr>
+        <tr><td>top_customers</td><td>Rank customers by total spend, order count, or lifetime value</td></tr>
+      </table>
+    </div>
+
+    <!-- Inventory -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128230;</span>
+        <span class="tool-category-name">Inventory</span>
+        <span class="tool-category-count">4 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>check_inventory</td><td>Check stock levels for a product across all locations</td></tr>
+        <tr><td>list_locations</td><td>List all inventory locations with addresses and capabilities</td></tr>
+        <tr><td>low_stock_products</td><td>Get products below reorder threshold with stock-out risk</td></tr>
+        <tr><td>adjust_inventory</td><td>Adjust inventory quantity at a specific location with reason</td></tr>
+      </table>
+    </div>
+
+    <!-- Analytics -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128200;</span>
+        <span class="tool-category-name">Analytics</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>store_summary</td><td>Overview of store performance: revenue, orders, and conversion metrics</td></tr>
+        <tr><td>sales_by_product</td><td>Sales breakdown by product with revenue and units for a date range</td></tr>
+        <tr><td>fulfillment_status_summary</td><td>Distribution of order fulfillment statuses with aging analysis</td></tr>
+      </table>
+    </div>
+
+    <!-- Fulfillments -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128666;</span>
+        <span class="tool-category-name">Fulfillments</span>
+        <span class="tool-category-count">2 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_fulfillments</td><td>List fulfillments for an order with tracking numbers and carrier info</td></tr>
+        <tr><td>create_fulfillment</td><td>Create a fulfillment with tracking number and notify the customer</td></tr>
+      </table>
+    </div>
+
+    <!-- Collections -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128451;</span>
+        <span class="tool-category-name">Collections</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>get_collection</td><td>Get collection details including rules for smart collections</td></tr>
+        <tr><td>collection_products</td><td>List all products within a specific collection</td></tr>
+        <tr><td>create_smart_collection</td><td>Create an automated collection with tag, price, or vendor rules</td></tr>
+      </table>
+    </div>
+
+    <!-- Marketing -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#127873;</span>
+        <span class="tool-category-name">Marketing</span>
+        <span class="tool-category-count">4 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_price_rules</td><td>List all price rules including percentage, fixed, and BOGO discounts</td></tr>
+        <tr><td>get_price_rule</td><td>Get price rule details including conditions and usage limits</td></tr>
+        <tr><td>create_discount_code</td><td>Generate a discount code tied to an existing price rule</td></tr>
+        <tr><td>list_discount_codes</td><td>List all discount codes for a price rule with usage statistics</td></tr>
+      </table>
+    </div>
+
+    <!-- Content -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128196;</span>
+        <span class="tool-category-name">Content</span>
+        <span class="tool-category-count">4 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_blogs</td><td>List all blog channels with article counts and handles</td></tr>
+        <tr><td>list_pages</td><td>List all store pages with publication status and template info</td></tr>
+        <tr><td>get_metafields</td><td>Read metafields for any resource (product, order, customer, etc.)</td></tr>
+        <tr><td>set_metafield</td><td>Create or update a metafield on any resource with typed values</td></tr>
+      </table>
+    </div>
+
+    <!-- Webhooks -->
+    <div class="tool-category reveal">
+      <div class="tool-category-header">
+        <span class="tool-category-icon">&#128268;</span>
+        <span class="tool-category-name">Webhooks</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+      <table class="tool-table">
+        <tr><td>list_webhooks</td><td>List all registered webhooks with topics and endpoints</td></tr>
+        <tr><td>create_webhook</td><td>Register a new webhook for any Shopify event topic</td></tr>
+        <tr><td>delete_webhook</td><td>Remove a webhook subscription by ID</td></tr>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONFIG -->
+<section id="config">
+  <div class="container">
+    <h2 class="reveal">Drop-in configuration</h2>
+    <p class="section-sub reveal">Add the server to your MCP client config. Authenticate with your Shopify Admin API access token.</p>
+    <div class="config-grid reveal">
+      <div class="config-block">
+        <div class="config-header"><span class="file-icon">&#128196;</span> .mcp.json</div>
+<pre class="config-code">{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"shopify"</span>: {
+      <span class="key">"command"</span>: <span class="str">"npx"</span>,
+      <span class="key">"args"</span>: [<span class="str">"shopify-mcp"</span>],
+      <span class="key">"env"</span>: {
+        <span class="key">"SHOPIFY_STORE"</span>: <span class="str">"your-store"</span>,
+        <span class="key">"SHOPIFY_ACCESS_TOKEN"</span>: <span class="str">"shpat_xxx"</span>
+      }
+    }
+  }
+}</pre>
+      </div>
+      <div class="config-block">
+        <div class="config-header"><span class="file-icon">&#128196;</span> Environment Variables</div>
+<pre class="config-code"><span class="comment"># Required</span>
+<span class="key">SHOPIFY_STORE</span>=<span class="str">your-store</span>
+<span class="key">SHOPIFY_ACCESS_TOKEN</span>=<span class="str">shpat_xxx</span>
+
+<span class="comment"># Optional</span>
+<span class="key">SHOPIFY_API_VERSION</span>=<span class="str">2025-01</span>
+<span class="key">SHOPIFY_TIMEOUT</span>=<span class="str">30000</span>
+<span class="key">SHOPIFY_MAX_RETRIES</span>=<span class="str">3</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-left">Built by <a href="https://github.com/ExpertVagabond">Matthew Karsten</a> | <a href="https://purplesquirrelmedia.io">Purple Squirrel Media</a></div>
+    <div class="footer-links">
+      <a href="https://github.com/ExpertVagabond/shopify-mcp">GitHub</a>
+      <a href="https://modelcontextprotocol.io">MCP Spec</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyCmd(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied')},1800);
+  });
+}
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
