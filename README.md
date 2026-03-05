@@ -1,73 +1,18 @@
 # shopify-mcp
 
-MCP server for the Shopify Admin REST API. Provides 22 tools for managing products, orders, customers, inventory, fulfillments, and analytics from Claude Code or any MCP-compatible client.
+**MCP server for the Shopify Admin API — 36 tools for products, orders, customers, inventory, fulfillments, collections, analytics, marketing, content, and webhooks.**
 
-## Features
+[![npm version](https://img.shields.io/npm/v/shopify-mcp.svg)](https://www.npmjs.com/package/shopify-mcp)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green)](https://modelcontextprotocol.io)
+[![Shopify](https://img.shields.io/badge/Shopify-Admin_API-7AB55C?logo=shopify&logoColor=white)](https://shopify.dev)
 
-- **Products** — list, search, get details with variants/images/metafields, count, collections
-- **Orders** — list with filters, get details, recent orders, unfulfilled orders, count
-- **Customers** — search, get details with order history, top customers by spend/orders
-- **Inventory** — check levels across locations, find low stock, adjust quantities
-- **Analytics** — store summary, sales by product, fulfillment status breakdown
-- **Fulfillments** — list fulfillments, create with tracking info
+---
 
-Built with:
-- TypeScript strict mode
-- `@modelcontextprotocol/sdk` (stdio transport)
-- Shopify Admin REST API `2024-10`
-- Rate limiting with exponential backoff and `Retry-After` support
-- Cursor-based pagination via Link headers
-- Zero external HTTP dependencies (built-in `fetch`)
+## Tools
 
-## Setup
-
-### 1. Install dependencies and build
-
-```bash
-cd /Volumes/Virtual\ Server/projects/shopify-mcp
-npm install
-npm run build
-```
-
-### 2. Get a Shopify Admin API access token
-
-1. In your Shopify admin, go to **Settings > Apps and sales channels > Develop apps**
-2. Create a new app (or use an existing one)
-3. Configure Admin API scopes:
-   - `read_products`, `write_products`
-   - `read_orders`, `write_orders`
-   - `read_customers`
-   - `read_inventory`, `write_inventory`
-   - `read_locations`
-   - `read_fulfillments`, `write_fulfillments`
-4. Install the app and copy the Admin API access token
-
-### 3. Configure environment variables
-
-```bash
-export SHOPIFY_STORE_DOMAIN="your-store.myshopify.com"
-export SHOPIFY_ACCESS_TOKEN="shpat_xxxxxxxxxxxxxxxxxxxx"
-```
-
-### 4. Add to Claude Code MCP config
-
-Add to your `~/.mcp.json` or VS settings:
-
-```json
-{
-  "mcpServers": {
-    "shopify": {
-      "command": "/Volumes/Virtual Server/projects/shopify-mcp/shopify-mcp-wrapper.sh",
-      "env": {
-        "SHOPIFY_STORE_DOMAIN": "schneiders.myshopify.com",
-        "SHOPIFY_ACCESS_TOKEN": "shpat_xxxxxxxxxxxxxxxxxxxx"
-      }
-    }
-  }
-}
-```
-
-## Tools Reference
+### Products (5)
 
 | Tool | Description |
 |------|-------------|
@@ -76,27 +21,122 @@ Add to your `~/.mcp.json` or VS settings:
 | `search_products` | Full-text search across titles, vendors, tags, SKUs |
 | `product_count` | Count products matching filters |
 | `list_collections` | List smart and custom collections |
+
+### Orders (5)
+
+| Tool | Description |
+|------|-------------|
 | `list_orders` | List/filter orders by status, dates, fulfillment |
 | `get_order` | Detailed order with line items, shipping, fulfillments |
 | `recent_orders` | Most recent N orders |
 | `unfulfilled_orders` | Orders waiting for fulfillment |
 | `order_count` | Count orders matching filters |
+
+### Customers (3)
+
+| Tool | Description |
+|------|-------------|
 | `search_customers` | Search by name, email, phone |
 | `get_customer` | Customer details with addresses and order history |
 | `top_customers` | Ranked by total spend or order count |
+
+### Inventory (4)
+
+| Tool | Description |
+|------|-------------|
 | `check_inventory` | Inventory levels across locations for a product |
 | `list_locations` | All warehouse/store locations |
 | `low_stock_products` | Products below inventory threshold |
 | `adjust_inventory` | Adjust inventory at a location |
-| `store_summary` | Today's orders, revenue, fulfillment breakdown |
-| `sales_by_product` | Revenue and units by product for a date range |
-| `fulfillment_status_summary` | Order counts by fulfillment status |
+
+### Collections (3)
+
+| Tool | Description |
+|------|-------------|
+| `get_collection` | Collection details with product count and rules |
+| `collection_products` | Products within a specific collection |
+| `create_smart_collection` | Create automated collections with rules |
+
+### Fulfillments (3)
+
+| Tool | Description |
+|------|-------------|
 | `list_fulfillments` | Fulfillments for an order with tracking |
 | `create_fulfillment` | Create fulfillment with tracking info |
+| `fulfillment_status_summary` | Order counts by fulfillment status |
 
-## API Rate Limiting
+### Analytics (2)
 
-The client implements Shopify's rate limiting best practices:
+| Tool | Description |
+|------|-------------|
+| `store_summary` | Today's orders, revenue, fulfillment breakdown |
+| `sales_by_product` | Revenue and units by product for a date range |
+
+### Marketing (4)
+
+| Tool | Description |
+|------|-------------|
+| `list_price_rules` | List all price rules |
+| `get_price_rule` | Price rule details with conditions |
+| `create_discount_code` | Create discount code for a price rule |
+| `list_discount_codes` | List codes for a price rule |
+
+### Content (4)
+
+| Tool | Description |
+|------|-------------|
+| `list_blogs` | List blog entries |
+| `list_pages` | List store pages |
+| `get_metafields` | Get metafields for any resource |
+| `set_metafield` | Create or update a metafield |
+
+### Webhooks (3)
+
+| Tool | Description |
+|------|-------------|
+| `list_webhooks` | List registered webhooks |
+| `create_webhook` | Register a new webhook |
+| `delete_webhook` | Remove a webhook |
+
+## Setup
+
+### Install
+
+```bash
+git clone https://github.com/ExpertVagabond/shopify-mcp.git
+cd shopify-mcp
+npm install && npm run build
+```
+
+### Get a Shopify Access Token
+
+1. In Shopify admin: **Settings > Apps and sales channels > Develop apps**
+2. Create app, configure Admin API scopes:
+   - `read_products`, `write_products`, `read_orders`, `write_orders`
+   - `read_customers`, `read_inventory`, `write_inventory`, `read_locations`
+   - `read_fulfillments`, `write_fulfillments`
+3. Install and copy the Admin API access token
+
+### Claude Desktop / Claude Code Config
+
+```json
+{
+  "mcpServers": {
+    "shopify": {
+      "command": "node",
+      "args": ["/path/to/shopify-mcp/dist/index.js"],
+      "env": {
+        "SHOPIFY_STORE_DOMAIN": "your-store.myshopify.com",
+        "SHOPIFY_ACCESS_TOKEN": "shpat_xxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+## Rate Limiting
+
+Built-in Shopify rate limiting:
 - Monitors `X-Shopify-Shop-Api-Call-Limit` header
 - Proactive throttling when approaching the limit
 - Respects `Retry-After` on 429 responses
@@ -107,17 +147,27 @@ The client implements Shopify's rate limiting best practices:
 
 ```
 src/
-  index.ts          # MCP server setup, tool registration
-  api.ts            # Shopify REST client (rate limiting, pagination, retries)
+  index.ts              MCP server setup, 36 tool registrations
+  api.ts                Shopify REST client (rate limiting, pagination, retries)
   tools/
-    products.ts     # Product & collection tools
-    orders.ts       # Order tools
-    customers.ts    # Customer tools
-    inventory.ts    # Inventory & location tools
-    analytics.ts    # Store analytics tools
-    fulfillments.ts # Fulfillment tools
+    products.ts         Product listing, search, count
+    orders.ts           Order listing, details, counts
+    customers.ts        Customer search, details, ranking
+    inventory.ts        Stock levels, locations, adjustments
+    collections.ts      Collection management
+    fulfillments.ts     Fulfillment creation, tracking
+    analytics.ts        Store summary, sales reports
+    marketing.ts        Price rules, discount codes
+    content.ts          Blogs, pages, metafields
+    webhooks.ts         Webhook management
 ```
+
+Built with TypeScript strict mode, `@modelcontextprotocol/sdk` (stdio transport), Shopify Admin REST API `2024-10`, cursor-based pagination, zero external HTTP dependencies.
 
 ## License
 
-MIT
+[MIT](LICENSE)
+
+## Author
+
+Built by [Purple Squirrel Media](https://purplesquirrelmedia.io)
