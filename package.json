@@ -1,5 +1,5 @@
 {
-  "name": "shopify-mcp",
+  "name": "@purplesquirrel/shopify-mcp",
   "version": "1.0.0",
   "description": "MCP server for Shopify Admin API — product, order, customer, inventory, and fulfillment management",
   "main": "dist/index.js",
