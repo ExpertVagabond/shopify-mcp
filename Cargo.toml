@@ -2,6 +2,7 @@
 name = "shopify-mcp"
 version = "1.0.0"
 edition = "2024"
+description = "MCP server for Shopify — products, orders, inventory, customers, webhooks"
 license = "MIT"
 authors = ["Purple Squirrel Media LLC"]
 
