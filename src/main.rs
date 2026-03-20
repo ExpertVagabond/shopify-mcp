@@ -1,12 +1,15 @@
 #![recursion_limit = "1024"]
 //! Shopify MCP Server — Shopify Admin API tools via Model Context Protocol.
 //!
-//! Security:
-//! - Access token loaded from environment, never logged
-//! - Domain validated against injection (no path segments, no query strings)
-//! - All Shopify IDs validated as numeric before use in URLs
-//! - Request/response size limits via reqwest client config
-//! - Error messages sanitized to prevent token leakage
+//! # Security Architecture
+//!
+//! - **Credential isolation**: Access token loaded from environment, never logged
+//! - **Domain validation**: Injection-safe — no path segments, no query strings, TLD required
+//! - **ID validation**: All Shopify IDs validated as numeric before URL interpolation
+//! - **Size limits**: Request/response bounded via reqwest client config
+//! - **Error sanitization**: Token and credential values stripped from all error messages
+//! - **Query bounds**: Search queries capped at 1024 chars, list limits capped at 250
+//! - **No shell execution**: All operations via structured Shopify Admin REST API
 
 use serde::Deserialize;
 use serde_json::{Value, json};
