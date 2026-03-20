@@ -83,15 +83,24 @@ import {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+function redactEnvSecrets(message: string): string {
+  const token = process.env.SHOPIFY_ACCESS_TOKEN;
+  if (token && message.includes(token)) {
+    return message.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), "[REDACTED]");
+  }
+  return message;
+}
+
 function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }> }> {
   return async (args: T) => {
     try {
       const text = await fn(args);
       return { content: [{ type: "text" as const, text }] };
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = redactEnvSecrets(err instanceof Error ? err.message : String(err));
       return {
         content: [{ type: "text" as const, text: `Error: ${message}` }],
+        isError: true,
       };
     }
   };

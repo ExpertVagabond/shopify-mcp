@@ -63,6 +63,27 @@ async function sleep(ms: number): Promise<void> {
 
 // ── client ───────────────────────────────────────────────────────────────────
 
+/**
+ * Sanitize a Shopify resource ID (numeric or gid:// format).
+ * Prevents injection via ID parameters.
+ */
+export function sanitizeId(id: string | number): string {
+  const str = String(id);
+  // Allow numeric IDs and Shopify GID format
+  if (/^\d+$/.test(str) || /^gid:\/\/shopify\/\w+\/\d+$/.test(str)) {
+    return str;
+  }
+  throw new Error(`Invalid Shopify resource ID: ${str}`);
+}
+
+/**
+ * Redact sensitive values from error messages.
+ */
+function redactSensitive(message: string, token: string): string {
+  if (!token) return message;
+  return message.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), "[REDACTED]");
+}
+
 export class ShopifyClient {
   private readonly baseUrl: string;
   private readonly accessToken: string;
@@ -130,7 +151,10 @@ export class ShopifyClient {
         if (!res.ok) {
           const errorBody = await res.text();
           throw new Error(
-            `Shopify API error ${res.status} ${res.statusText}: ${errorBody}`,
+            redactSensitive(
+              `Shopify API error ${res.status} ${res.statusText}: ${errorBody}`,
+              this.accessToken,
+            ),
           );
         }
 

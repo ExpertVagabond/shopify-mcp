@@ -2,7 +2,7 @@
  * Webhook management tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +69,16 @@ export async function createWebhook(args: {
   format?: string;
   fields?: string[];
 }): Promise<string> {
+  // Validate webhook address is a valid HTTPS URL
+  try {
+    const url = new URL(args.address);
+    if (url.protocol !== "https:") {
+      return "Error: Webhook address must use HTTPS protocol";
+    }
+  } catch {
+    return "Error: Webhook address must be a valid URL";
+  }
+
   const client = getClient();
 
   const body: Record<string, unknown> = {
@@ -107,20 +117,21 @@ export async function createWebhook(args: {
 export async function deleteWebhook(args: {
   webhook_id: string;
 }): Promise<string> {
+  const id = sanitizeId(args.webhook_id);
   const client = getClient();
 
   // First get the webhook details for confirmation
   let webhookInfo = "";
   try {
     const data = await client.getData<{ webhook: ShopifyWebhook }>(
-      `/webhooks/${args.webhook_id}.json`,
+      `/webhooks/${id}.json`,
     );
     webhookInfo = ` (topic: ${data.webhook.topic}, address: ${data.webhook.address})`;
   } catch {
     // Webhook may not exist
   }
 
-  await client.delete(`/webhooks/${args.webhook_id}.json`);
+  await client.delete(`/webhooks/${id}.json`);
 
   return `Webhook ${args.webhook_id}${webhookInfo} deleted successfully.`;
 }
