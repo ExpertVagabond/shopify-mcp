@@ -48,6 +48,22 @@ fn validate_query(q: &str, field: &str) -> Result<&str, String> {
     Ok(q)
 }
 
+/// Percent-encode a query parameter value (RFC 3986 unreserved characters pass through).
+fn percent_encode(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for b in input.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char);
+            }
+            _ => {
+                out.push_str(&format!("%{b:02X}"));
+            }
+        }
+    }
+    out
+}
+
 /// Validate a Shopify store domain — no path injection.
 fn validate_domain(domain: &str) -> Result<String, String> {
     let clean = domain
@@ -99,10 +115,17 @@ impl ShopifyClient {
 
     async fn get(&self, path: &str, params: &[(&str, &str)]) -> Result<Value, String> {
         let mut url = format!("{}{}", self.base_url, path);
+        // URL-encode query parameters to prevent injection via crafted values
         let qs: Vec<String> = params
             .iter()
             .filter(|(_, v)| !v.is_empty())
-            .map(|(k, v)| format!("{k}={v}"))
+            .map(|(k, v)| {
+                format!(
+                    "{}={}",
+                    percent_encode(k),
+                    percent_encode(v)
+                )
+            })
             .collect();
         if !qs.is_empty() {
             url = format!("{}?{}", url, qs.join("&"));
