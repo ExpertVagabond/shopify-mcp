@@ -1,7 +1,67 @@
 #![recursion_limit = "1024"]
+//! Shopify MCP Server — Shopify Admin API tools via Model Context Protocol.
+//!
+//! Security:
+//! - Access token loaded from environment, never logged
+//! - Domain validated against injection (no path segments, no query strings)
+//! - All Shopify IDs validated as numeric before use in URLs
+//! - Request/response size limits via reqwest client config
+//! - Error messages sanitized to prevent token leakage
+
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::io::BufRead;
+
+// --- Security: input validation ---
+/// Maximum length for a Shopify resource ID.
+const MAX_ID_LEN: usize = 32;
+/// Maximum length for a search query.
+const MAX_QUERY_LEN: usize = 1024;
+/// Maximum allowed list limit.
+const MAX_LIST_LIMIT: i64 = 250;
+
+/// Validate a Shopify resource ID — must be numeric.
+fn validate_shopify_id(id: &str, field: &str) -> Result<String, String> {
+    let cleaned: String = id.chars().filter(|c| c.is_ascii_digit()).collect();
+    if cleaned.is_empty() || cleaned.len() > MAX_ID_LEN {
+        return Err(format!("{field} must be a numeric Shopify ID"));
+    }
+    Ok(cleaned)
+}
+
+/// Validate and cap a list limit parameter.
+fn validate_limit(v: &Value) -> i64 {
+    v.as_i64().unwrap_or(50).min(MAX_LIST_LIMIT).max(1)
+}
+
+/// Validate a search query string.
+fn validate_query(q: &str, field: &str) -> Result<&str, String> {
+    if q.len() > MAX_QUERY_LEN {
+        return Err(format!("{field} exceeds maximum query length of {MAX_QUERY_LEN}"));
+    }
+    if q.contains('\0') {
+        return Err(format!("{field} contains null bytes"));
+    }
+    Ok(q)
+}
+
+/// Validate a Shopify store domain — no path injection.
+fn validate_domain(domain: &str) -> Result<String, String> {
+    let clean = domain
+        .trim_start_matches("https://")
+        .trim_start_matches("http://")
+        .trim_end_matches('/');
+    if clean.is_empty() {
+        return Err("Store domain must not be empty".into());
+    }
+    if clean.contains('/') || clean.contains('?') || clean.contains('#') {
+        return Err("Store domain contains invalid URL characters".into());
+    }
+    if !clean.contains('.') {
+        return Err("Store domain must contain a TLD".into());
+    }
+    Ok(clean.to_string())
+}
 
 #[derive(Deserialize)]
 struct JsonRpcRequest {
@@ -26,10 +86,7 @@ impl ShopifyClient {
             std::env::var("SHOPIFY_STORE_DOMAIN").map_err(|_| "SHOPIFY_STORE_DOMAIN required")?;
         let token =
             std::env::var("SHOPIFY_ACCESS_TOKEN").map_err(|_| "SHOPIFY_ACCESS_TOKEN required")?;
-        let clean = domain
-            .trim_start_matches("https://")
-            .trim_start_matches("http://")
-            .trim_end_matches('/');
+        let clean = validate_domain(&domain)?;
         Ok(Self {
             base_url: format!("https://{clean}/admin/api/{API_VERSION}"),
             access_token: token,
