@@ -523,7 +523,7 @@ async function main(): Promise<void> {
   console.error("Shopify MCP server running on stdio");
 }
 
-main().catch((err) => {
-  console.error("Fatal error:", err);
+main().catch(() => {
+  console.error("Fatal: shopify-mcp server failed to start");
   process.exit(1);
 });
