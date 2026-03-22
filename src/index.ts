@@ -3,12 +3,14 @@
 /**
  * Shopify MCP Server
  *
- * Exposes Shopify Admin REST API operations as MCP tools for use with
- * Claude Code and other MCP-compatible clients.
+ * Exposes Shopify Admin REST API operations as MCP tools.
  *
- * Required env vars:
- *   SHOPIFY_STORE_DOMAIN  — e.g. "schneiders.myshopify.com"
- *   SHOPIFY_ACCESS_TOKEN  — Shopify Admin API access token
+ * Security:
+ * - All secrets loaded from env vars (SHOPIFY_STORE_DOMAIN, SHOPIFY_ACCESS_TOKEN)
+ * - Access token redacted from all error messages via sanitizeError()
+ * - All resource IDs validated via sanitizeId() — prevents path traversal
+ * - Input validated with zod schemas on every tool
+ * - No raw error objects leaked to clients
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
