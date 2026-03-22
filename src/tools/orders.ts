@@ -2,7 +2,7 @@
  * Order tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -146,8 +146,9 @@ export async function listOrders(args: {
 
 export async function getOrder(args: { order_id: string }): Promise<string> {
   const client = getClient();
+  const id = sanitizeId(args.order_id);
   const data = await client.getData<{ order: ShopifyOrder }>(
-    `/orders/${args.order_id}.json`,
+    `/orders/${id}.json`,
   );
   return formatOrder(data.order, true);
 }

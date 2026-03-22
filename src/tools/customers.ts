@@ -2,7 +2,7 @@
  * Customer tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,8 +81,9 @@ export async function getCustomer(args: {
   include_orders?: boolean;
 }): Promise<string> {
   const client = getClient();
+  const id = sanitizeId(args.customer_id);
   const data = await client.getData<{ customer: ShopifyCustomer }>(
-    `/customers/${args.customer_id}.json`,
+    `/customers/${id}.json`,
   );
   const c = data.customer;
 
@@ -120,7 +121,7 @@ export async function getCustomer(args: {
   if (args.include_orders !== false) {
     try {
       const orderData = await client.getData<{ orders: ShopifyOrder[] }>(
-        `/customers/${args.customer_id}/orders.json`,
+        `/customers/${id}/orders.json`,
         {
           limit: 10,
           status: "any",
