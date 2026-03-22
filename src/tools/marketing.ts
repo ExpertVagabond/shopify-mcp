@@ -3,7 +3,7 @@
  * for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -88,12 +88,13 @@ export async function getPriceRule(args: {
 }): Promise<string> {
   const client = getClient();
 
+  const priceRuleId = sanitizeId(args.price_rule_id);
   const [ruleData, codesData] = await Promise.all([
     client.getData<{ price_rule: ShopifyPriceRule }>(
-      `/price_rules/${args.price_rule_id}.json`,
+      `/price_rules/${priceRuleId}.json`,
     ),
     client.getData<{ discount_codes: ShopifyDiscountCode[] }>(
-      `/price_rules/${args.price_rule_id}/discount_codes.json`,
+      `/price_rules/${priceRuleId}/discount_codes.json`,
     ),
   ]);
 
@@ -174,8 +175,9 @@ export async function createDiscountCode(args: {
 }): Promise<string> {
   const client = getClient();
 
+  const priceRuleId = sanitizeId(args.price_rule_id);
   const result = await client.post<{ discount_code: ShopifyDiscountCode }>(
-    `/price_rules/${args.price_rule_id}/discount_codes.json`,
+    `/price_rules/${priceRuleId}/discount_codes.json`,
     {
       discount_code: {
         code: args.code,
@@ -200,8 +202,9 @@ export async function listDiscountCodes(args: {
 }): Promise<string> {
   const client = getClient();
 
+  const priceRuleId = sanitizeId(args.price_rule_id);
   const data = await client.getData<{ discount_codes: ShopifyDiscountCode[] }>(
-    `/price_rules/${args.price_rule_id}/discount_codes.json`,
+    `/price_rules/${priceRuleId}/discount_codes.json`,
   );
   const codes = data.discount_codes;
 

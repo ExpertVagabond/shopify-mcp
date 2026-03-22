@@ -6,7 +6,7 @@
  * We support both listing existing fulfillments and creating new ones.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,8 +56,9 @@ export async function listFulfillments(args: {
   order_id: string;
 }): Promise<string> {
   const client = getClient();
+  const orderId = sanitizeId(args.order_id);
   const data = await client.getData<{ fulfillments: ShopifyFulfillment[] }>(
-    `/orders/${args.order_id}/fulfillments.json`,
+    `/orders/${orderId}/fulfillments.json`,
   );
   const fulfillments = data.fulfillments;
 
@@ -96,8 +97,9 @@ export async function createFulfillment(args: {
   const client = getClient();
 
   // Step 1: Get fulfillment orders for this order
+  const orderId = sanitizeId(args.order_id);
   const foData = await client.getData<{ fulfillment_orders: ShopifyFulfillmentOrder[] }>(
-    `/orders/${args.order_id}/fulfillment_orders.json`,
+    `/orders/${orderId}/fulfillment_orders.json`,
   );
   const fulfillmentOrders = foData.fulfillment_orders;
 

@@ -2,7 +2,7 @@
  * Inventory & location tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,8 +85,9 @@ export async function checkInventory(args: {
   let variantMap: Map<number, { title: string; sku: string; variantTitle: string }> = new Map();
 
   if (args.product_id) {
+    const prodId = sanitizeId(args.product_id);
     const prodData = await client.getData<{ product: ShopifyProduct }>(
-      `/products/${args.product_id}.json`,
+      `/products/${prodId}.json`,
       { fields: "id,title,variants" },
     );
     const product = prodData.product;

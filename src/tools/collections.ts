@@ -2,7 +2,7 @@
  * Enhanced collection tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export async function getCollection(args: {
   collection_id: string;
 }): Promise<string> {
   const client = getClient();
-  const id = args.collection_id;
+  const id = sanitizeId(args.collection_id);
 
   // Try custom collection first, then smart collection
   let collection: ShopifyCustomCollection | ShopifySmartCollection | null = null;

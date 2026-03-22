@@ -2,7 +2,7 @@
  * Product & collection tools for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -121,8 +121,9 @@ export async function listProducts(args: {
 
 export async function getProduct(args: { product_id: string }): Promise<string> {
   const client = getClient();
+  const id = sanitizeId(args.product_id);
   const data = await client.getData<{ product: ShopifyProduct }>(
-    `/products/${args.product_id}.json`,
+    `/products/${id}.json`,
   );
   const p = data.product;
 
@@ -130,7 +131,7 @@ export async function getProduct(args: { product_id: string }): Promise<string> 
   let metafields: ShopifyMetafield[] = [];
   try {
     const mfData = await client.getData<{ metafields: ShopifyMetafield[] }>(
-      `/products/${args.product_id}/metafields.json`,
+      `/products/${id}/metafields.json`,
     );
     metafields = mfData.metafields;
   } catch {

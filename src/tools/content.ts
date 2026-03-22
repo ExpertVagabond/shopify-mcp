@@ -3,7 +3,7 @@
  * for Shopify Admin API.
  */
 
-import { getClient } from "../api.js";
+import { getClient, sanitizeId } from "../api.js";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,8 +84,9 @@ export async function listBlogs(args: {
     // Optionally fetch articles for each blog
     if (args.include_articles !== false) {
       try {
+        const blogId = sanitizeId(blog.id);
         const articleData = await client.getData<{ articles: ShopifyArticle[] }>(
-          `/blogs/${blog.id}/articles.json`,
+          `/blogs/${blogId}/articles.json`,
           { limit: 10, fields: "id,title,author,published_at,tags,handle" },
         );
         const articles = articleData.articles;
@@ -179,8 +180,9 @@ export async function getMetafields(args: {
     params.namespace = args.namespace;
   }
 
+  const resourceId = sanitizeId(args.resource_id);
   const data = await client.getData<{ metafields: ShopifyMetafield[] }>(
-    `/${args.resource_type}/${args.resource_id}/metafields.json`,
+    `/${args.resource_type}/${resourceId}/metafields.json`,
     params,
   );
   const metafields = data.metafields;
@@ -222,8 +224,9 @@ export async function setMetafield(args: {
     return `Invalid resource type "${args.resource_type}". Valid types: ${validResources.join(", ")}`;
   }
 
+  const resourceId = sanitizeId(args.resource_id);
   const result = await client.post<{ metafield: ShopifyMetafield }>(
-    `/${args.resource_type}/${args.resource_id}/metafields.json`,
+    `/${args.resource_type}/${resourceId}/metafields.json`,
     {
       metafield: {
         namespace: args.namespace,
