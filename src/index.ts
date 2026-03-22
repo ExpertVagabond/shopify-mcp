@@ -83,13 +83,10 @@ import {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function redactEnvSecrets(message: string): string {
-  const token = process.env.SHOPIFY_ACCESS_TOKEN;
-  if (token && message.includes(token)) {
-    return message.replace(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), "[REDACTED]");
-  }
-  return message;
-}
+const sanitizeError = (e: unknown): string => {
+  const msg = e instanceof Error ? e.message : String(e);
+  return msg.replace(/\/[^\s]+/g, '[path]').replace(/[A-Za-z0-9]{20,}/g, '[redacted]').slice(0, 200);
+};
 
 function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }> }> {
   return async (args: T) => {
@@ -97,9 +94,8 @@ function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ c
       const text = await fn(args);
       return { content: [{ type: "text" as const, text }] };
     } catch (err) {
-      const message = redactEnvSecrets(err instanceof Error ? err.message : String(err));
       return {
-        content: [{ type: "text" as const, text: `Error: ${message}` }],
+        content: [{ type: "text" as const, text: `Error: ${sanitizeError(err)}` }],
         isError: true,
       };
     }
@@ -523,7 +519,7 @@ async function main(): Promise<void> {
   console.error("Shopify MCP server running on stdio");
 }
 
-main().catch(() => {
-  console.error("Fatal: shopify-mcp server failed to start");
+main().catch((err) => {
+  console.error("Fatal: shopify-mcp server failed to start:", sanitizeError(err));
   process.exit(1);
 });
