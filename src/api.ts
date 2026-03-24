@@ -11,6 +11,8 @@
  *   - `fetchAll` walks every page automatically.
  */
 
+import { validateNoInjection, sanitizeError } from "@psm/mcp-core-ts";
+
 const API_VERSION = "2024-10";
 const MAX_RETRIES = 3;
 const RATE_LIMIT_BUFFER = 4; // start slowing when only 4 calls remain
@@ -69,11 +71,12 @@ async function sleep(ms: number): Promise<void> {
  */
 export function sanitizeId(id: string | number): string {
   const str = String(id);
+  validateNoInjection(str, "resource ID");
   // Allow numeric IDs and Shopify GID format
   if (/^\d+$/.test(str) || /^gid:\/\/shopify\/\w+\/\d+$/.test(str)) {
     return str;
   }
-  throw new Error(`Invalid Shopify resource ID: ${str}`);
+  throw new Error(`Invalid Shopify resource ID: ${sanitizeError(str)}`);
 }
 
 /**
