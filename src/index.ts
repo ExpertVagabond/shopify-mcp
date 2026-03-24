@@ -16,6 +16,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import {
+  sanitizeError as coreSanitizeError,
+  defaultFilter,
+} from "@psm/mcp-core-ts";
 
 import {
   listProducts,
@@ -87,14 +91,16 @@ import {
 
 const sanitizeError = (e: unknown): string => {
   const msg = e instanceof Error ? e.message : String(e);
-  return msg.replace(/\/[^\s]+/g, '[path]').replace(/[A-Za-z0-9]{20,}/g, '[redacted]').slice(0, 200);
+  return coreSanitizeError(msg);
 };
 
 function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }> }> {
   return async (args: T) => {
     try {
       const text = await fn(args);
-      return { content: [{ type: "text" as const, text }] };
+      // Filter secrets and PII from all tool output (credential filtering)
+      const filtered = defaultFilter.filter(text);
+      return { content: [{ type: "text" as const, text: filtered.text }] };
     } catch (err) {
       return {
         content: [{ type: "text" as const, text: `Error: ${sanitizeError(err)}` }],

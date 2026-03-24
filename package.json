@@ -2,6 +2,7 @@
   "name": "@purplesquirrel/shopify-mcp",
   "version": "1.0.0",
   "description": "MCP server for Shopify Admin API — product, order, customer, inventory, and fulfillment management",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -23,7 +24,8 @@
   "author": "Matthew Karsten <MatthewKarstenConnects@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@psm/mcp-core-ts": "file:../psm-mcp-core-ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
