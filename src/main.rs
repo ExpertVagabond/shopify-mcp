@@ -38,7 +38,7 @@ fn validate_limit(v: &Value) -> i64 {
 }
 
 /// Validate a search query string.
-fn validate_query(q: &str, field: &str) -> Result<&str, String> {
+fn validate_query<'a>(q: &'a str, field: &str) -> Result<&'a str, String> {
     if q.len() > MAX_QUERY_LEN {
         return Err(format!("{field} exceeds maximum query length of {MAX_QUERY_LEN}"));
     }
