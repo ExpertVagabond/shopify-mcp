@@ -94,8 +94,35 @@ const sanitizeError = (e: unknown): string => {
   return coreSanitizeError(msg);
 };
 
-function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }> }> {
+// ── Rate Limiter (sliding window, 60 req/min) ──────────────────────────────
+
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX || "60", 10);
+
+const callTimestamps: number[] = [];
+
+function checkRateLimit(): boolean {
+  const now = Date.now();
+  const cutoff = now - RATE_LIMIT_WINDOW_MS;
+  // Remove expired timestamps from the front
+  while (callTimestamps.length > 0 && callTimestamps[0] <= cutoff) {
+    callTimestamps.shift();
+  }
+  if (callTimestamps.length >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  callTimestamps.push(now);
+  return true;
+}
+
+function wrapTool<T>(fn: (args: T) => Promise<string>): (args: T) => Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
   return async (args: T) => {
+    if (!checkRateLimit()) {
+      return {
+        content: [{ type: "text" as const, text: `Error: Rate limit exceeded (${RATE_LIMIT_MAX} requests/minute). Please wait and try again.` }],
+        isError: true,
+      };
+    }
     try {
       const text = await fn(args);
       // Filter secrets and PII from all tool output (credential filtering)
