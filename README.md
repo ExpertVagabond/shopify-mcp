@@ -2,7 +2,9 @@
 
 **MCP server for the Shopify Admin API — 36 tools for products, orders, customers, inventory, fulfillments, collections, analytics, marketing, content, and webhooks.**
 
-[![npm version](https://img.shields.io/npm/v/shopify-mcp.svg)](https://www.npmjs.com/package/shopify-mcp)
+> Published on npm as **[`@purplesquirrel/shopify-mcp`](https://www.npmjs.com/package/@purplesquirrel/shopify-mcp)**. The unscoped `shopify-mcp` package on npm is an unrelated third-party project — always install the scoped name.
+
+[![npm version](https://img.shields.io/npm/v/%40purplesquirrel%2Fshopify-mcp.svg)](https://www.npmjs.com/package/@purplesquirrel/shopify-mcp)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green)](https://modelcontextprotocol.io)
