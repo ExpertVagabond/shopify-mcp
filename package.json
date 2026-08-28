@@ -21,7 +21,7 @@
     "admin-api",
     "ecommerce"
   ],
-  "author": "Matthew Karsten <MatthewKarstenConnects@gmail.com>",
+  "author": "Matthew Karsten <matthewkarstenconnects@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
